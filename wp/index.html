@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HUIAN Netdisk</title>
+    <style type="text/css">
+      .outSide{margin-top: 15px;border-bottom: 1px solid #ccc;margin-bottom: 10px;}
+    </style>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <div class='container outSide'>
+      <div class='row'>
+        <div class='col-md-5' >
+          <h3 style="margin-top: 7px">Netdisk Uploading System<i><small style="color: #0997F7"> A pure place for you</small></i></h3>
+        </div>
+        <div class='col-md-2 col-md-offset-4'>
+          <input type='button' class='btn btn-default btn-primary btn-myBtn' value='Register/Login' data-toggle="modal" data-target=".abc">
+          <p class='namesNode hide'>Welcome back! <span></span></p> 
+        </div>
+
+      </div>
+    </div>
+
+
+    <div class='container fileShowNode hide'>
+      <table class='table text-center table-hover'>
+        <thead>
+          <tr>
+            <td>Index</td>
+            <td>File Name</td>
+            <td>File Size</td>
+            <td>Time to Upload</td>
+            <td>Download Times</td>
+            <td>Delete?</td>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+
+      <form class='form-inline'>
+        <div class='form-group'>
+          <input type="file" name="" class='fsNode'>
+          
+        </div>
+        <div class='form-group'>
+          <input type="button" name="" class='btn btn-default btn-primary btn-xs btn-setFiles' value="Upload" data-toggle="modal" data-target=".bbb">
+        </div>
+      </form>
+    </div>
+
+
+
+    <div class="modal fade bbb" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Information Bar</h4>
+          </div>
+          <div class="modal-body bodytextNode">
+            <p>One fine body&hellip;</p>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+
+
+    <div class="modal fade abc" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Register and Login</h4>
+          </div>
+          <div class="modal-body">
+            <form class='myForm'>
+              <div class='form-group'>
+                <label>User Name:</label>
+                <input type="" name="" class='form-control userNode'>
+              </div>
+              <div class='form-group'>
+                <label>Password:</label>
+                <input type="password" name="" class='form-control passNode'>
+              </div>
+              <input type="button" name="" value='Login' class='btn btn-default btn-primary btn-loginNode' >
+              <input type="button" name="" value='Register' class='btn btn-default btn-info btn-res' >
+            </form>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    
+    <script src="js/jq.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+
+    (()=>{
+      let index = 1;
+      $('.btn-myBtn').on({
+        click(){
+          $('.myForm .form-group').removeClass('has-error');
+          $('.userNode').val('');
+          $('.passNode').val('');
+
+        }
+      });
+
+
+      function toTr(index,filesName,size,timer,download,hash){
+        var oTr = document.createElement('tr');
+        $(oTr).attr('hash',hash);
+        oTr.innerHTML = `
+            <td>${index}</td>
+            <td>${filesName}</td>
+            <td>${size}</td>
+            <td>${timer}</td>
+            <td>${download}</td>
+            <td><input type='button' class='btn btn-default btn-danger btn-xs btn-deleteNode' value='Delete' data-toggle="modal" data-target=".bbb"></td>`;
+
+        return oTr;
+      }
+
+
+      $('body').on({
+        'click':function(){
+          var _this = this;
+          $.ajax({
+            url:'http://localhost:9111/login/removeFile',
+            type:'get',
+            data:{
+              user:$('.userNode').val(),
+              hash:$(_this.parentNode.parentNode).attr('hash')
+            },
+            success:function(data){
+              //console.log(data)
+              if(data.ok==1){
+               // $('.abc').modal('toggle');
+                $('.bodytextNode p').html(data.msg);
+                _this.parentNode.parentNode.remove();
+
+              }
+              else{
+                $('.bodytextNode p').html(data.msg);
+              }
+            }
+          })
+        }
+      },'.btn-deleteNode')
+
+
+      $('.btn-setFiles').on({
+        'click':function(){
+          var FromNode = new FormData();
+          console.log($('.fsNode')[0].files[0])
+          FromNode.append('files',$('.fsNode')[0].files[0]);
+          FromNode.append('Fsnames',$('.userNode').val());
+
+          var xhr = new XMLHttpRequest();
+          xhr.open('post','http://localhost:9111/login/getfiles',true);
+
+          xhr.send(FromNode);
+
+          xhr.onload = function(){
+            var json = eval('('+xhr.responseText+')');
+            //index,filesName,size,timer,download,hash
+            if(json.ok == 1){
+              $('.bodytextNode p').html('Upload Success!');
+              $('.fileShowNode tbody')[0].appendChild(toTr(index,$('.fsNode')[0].files[0].name,($('.fsNode')[0].files[0].size/1024).toFixed(2)+'KB',json.timer,0,json.hash));
+              index++;
+
+            }
+            else{
+              $('.bodytextNode p').html(json.msg);
+            }
+            $('.fsNode').val('');
+
+          }
+        }
+      })
+
+      //Login
+      $('.btn-loginNode').on({
+        click(){
+          $.ajax({
+            url:'http://localhost:9111/login/login',
+            type:'get',
+            data:{
+              'user':$('.userNode').val(),
+              'pass':$('.passNode').val()
+            },
+            success:function(data){
+              //console.log(data)
+              if(data.ok==1){
+                //alert(data.msg);
+                $('.abc').modal('toggle');
+                $('.btn-myBtn').hide();
+                $('.namesNode').removeClass('hide');
+                $('.namesNode span').html($('.userNode').val());
+                $('.fileShowNode').removeClass('hide');
+
+
+                //$('.fileShowNode tbody')[0].appendChild(toTr(index,$('.fsNode')[0].files[0].name,$('.fsNode')[0].files[0].size/1024+'KB',json.timer,0,json.hash));
+
+                for(var i = 0;i < data.data.length;i++){
+                  $('.fileShowNode tbody')[0].appendChild(toTr(index,data.data[i].LastName,(data.data[i].size/1024).toFixed(2)+'KB',data.data[i].lastTime,data.data[i].download,data.data[i].hashName));
+                  index++;
+                }
+              }
+              else{
+                alert(data.msg);
+                $('.myForm .form-group').addClass('has-error');
+              }
+            }
+          })
+        }
+      });
+
+      //Register
+      $('.btn-res').on({
+        click(){
+          $.ajax({
+            url:'http://localhost:9111/login/res',
+            type:'get',
+            data:{
+              'user':$('.userNode').val(),
+              'pass':$('.passNode').val()
+            },
+            success:function(data){
+              if(data.ok==1){
+                alert(data.msg);
+               // $('.abc').modal('toggle');
+              }
+              else{
+                alert(data.msg);
+                $('.myForm .form-group').addClass('has-error');
+              }
+            }
+          })
+
+        }
+      })
+
+    })();
+    // ------ 
+    </script>
+
+
+  </body>
+</html>
